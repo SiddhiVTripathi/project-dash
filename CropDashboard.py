@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import pickle
+import pandas as pd
 import numpy as np 
 
 with st.sidebar:
@@ -26,13 +27,16 @@ if service=='Crop':
         submitted = st.form_submit_button("Recommend")
         # Run the model if details submitted
         if submitted:
-            st.success("Submitted")
-            model = pickle.load(open('model.pkl', 'rb'))
-            final_features = np.array([[int(nitrogen), int(phosphorus), int(potassium), float(temperature), float(humidity), int(ph), int(rainfall)]])
-            prediction = model.predict(final_features)
-            output = prediction[0]
-            st.write(output)
-            st.stop()
+            if nitrogen and phosphorus and potassium and temperature and humidity and ph and rainfall:
+                st.success("Submitted")
+                model = pickle.load(open('model.pkl', 'rb'))
+                final_features = np.array([[int(nitrogen), int(phosphorus), int(potassium), float(temperature), float(humidity), int(ph), int(rainfall)]])
+                prediction = model.predict(final_features)
+                output = prediction[0]
+                st.write(output)
+                st.stop()
+            else:
+                st.error("All feilds are mandatory")
             
 elif service=='Fertilizer':
     with st.form('Fertliser_for_crop_form'):
@@ -40,7 +44,7 @@ elif service=='Fertilizer':
         # Input crop and soil details in widget
         crop = st.text_input(label='Crop',key='crop',placeholder="select from list of crops")
         nitrogen = st.text_input(label='Nitrogen',key='NitrogenVal',placeholder="0-140")
-        phophorus = st.text_input(label='Phosphorus',key='Phosphorus',placeholder="5-145")
+        phosphorus = st.text_input(label='Phosphorus',key='Phosphorus',placeholder="5-145")
         potassium = st.text_input(label='Potassium',key='Potassium',placeholder="5-205")
         moisture = st.text_input(label='Soil Moisture',key='SoilMoisture',placeholder="Moisture Content Value")
 
@@ -49,6 +53,34 @@ elif service=='Fertilizer':
         # Run the model if details submitted
         if submitted:
             st.success("Submitted")
+            df = pd.read_csv('Data/fertilizer.csv')
+        
+            nr = df[df['Crop'] == Crop]['N'].iloc[0]
+            pr = df[df['Crop'] == Crop]['P'].iloc[0]
+            kr = df[df['Crop'] == Crop]['K'].iloc[0]
+
+            n = nr - nitrogen
+            p = pr - phosphorus
+            k = kr - potassium
+            # st.write([n,p,k])
+            temp = {abs(n): "N", abs(p): "P", abs(k): "K"}
+            max_value = temp[max(temp.keys())]
+            if max_value == "N":
+                if n < 0:
+                    output = 'High in Nitrogen'
+                else:
+                    output = "Low in Nitrogen"
+            elif max_value == "P":
+                if p < 0:
+                    output = 'High in Phosphorus'
+                else:
+                    output = "Low in Phosphorus"
+            else:
+                if k < 0:
+                    output = 'High in Potassium'
+                else:
+                    output = "Low in Potassium"
+            st.write(output)
             st.stop()
 
 elif service=='Health':
