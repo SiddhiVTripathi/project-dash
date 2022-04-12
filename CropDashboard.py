@@ -41,19 +41,19 @@ if service=='Crop':
 elif service=='Fertilizer':
     with st.form('Fertliser_for_crop_form'):
         st.title("Find out the best Fertiliser for your Crop")
+        df = pd.read_csv("Data/fertilizer.csv",usecols=["Crop","N","P","K","pH","soil_moisture"])
         # Input crop and soil details in widget
-        crop = st.text_input(label='Crop',key='crop',placeholder="select from list of crops")
-        nitrogen = st.text_input(label='Nitrogen',key='NitrogenVal',placeholder="0-140")
-        phosphorus = st.text_input(label='Phosphorus',key='Phosphorus',placeholder="5-145")
-        potassium = st.text_input(label='Potassium',key='Potassium',placeholder="5-205")
-        moisture = st.text_input(label='Soil Moisture',key='SoilMoisture',placeholder="Moisture Content Value")
+        Crop = st.selectbox(label="Crop",options=df['Crop'])
+        nitrogen = int(st.text_input(label='Nitrogen',key='NitrogenVal',placeholder="0-140"))
+        phosphorus = int(st.text_input(label='Phosphorus',key='Phosphorus',placeholder="5-145"))
+        potassium = int(st.text_input(label='Potassium',key='Potassium',placeholder="5-205"))
+        moisture = int(st.text_input(label='Soil Moisture',key='SoilMoisture',placeholder="Moisture Content Value"))
 
         # submit the details
         submitted = st.form_submit_button("Suggest")
         # Run the model if details submitted
         if submitted:
             st.success("Submitted")
-            df = pd.read_csv('Data/fertilizer.csv')
         
             nr = df[df['Crop'] == Crop]['N'].iloc[0]
             pr = df[df['Crop'] == Crop]['P'].iloc[0]
@@ -62,7 +62,6 @@ elif service=='Fertilizer':
             n = nr - nitrogen
             p = pr - phosphorus
             k = kr - potassium
-            # st.write([n,p,k])
             temp = {abs(n): "N", abs(p): "P", abs(k): "K"}
             max_value = temp[max(temp.keys())]
             if max_value == "N":
@@ -106,4 +105,66 @@ elif service=='Health':
         # Run the model if details submitted
         if submitted:
             st.success("Submitted")
+            model1 = pickle.load(open('health.pkl', 'rb'))
+
+            Estimated_Insects_Count = int(insect_count)
+            Crop_Type = int(crop_type)
+            if(Crop_Type == 0):
+                Crop_Type_0 = 1
+                Crop_Type_1 = 0
+            else:
+                Crop_Type_0 = 0
+                Crop_Type_1 = 1
+            
+            Soil_Type = int(soil_type)
+            if(Soil_Type == 0):
+                Soil_Type_0 = 1
+                Soil_Type_1 = 0
+            else:
+                Soil_Type_0 = 0
+                Soil_Type_1 = 1
+            
+            Pesticide_Use_Category = int(pesticide_category)
+            if(Pesticide_Use_Category == 1):
+                Pesticide_Use_Category_1 = 1
+                Pesticide_Use_Category_2 = 0
+                Pesticide_Use_Category_3 = 0
+            elif(Pesticide_Use_Category == 2):
+                Pesticide_Use_Category_1 = 0
+                Pesticide_Use_Category_2 = 1
+                Pesticide_Use_Category_3 = 0
+            else:
+                Pesticide_Use_Category_1 = 0
+                Pesticide_Use_Category_2 = 0
+                Pesticide_Use_Category_3 = 1
+            
+            Number_Doses_Week = int(doses)
+            Number_Weeks_Used = int(WeeksUsed)
+            Number_Weeks_Quit = int(WeeksQuit)
+            
+            Season = int(Season)
+            if(Season == 1):
+                Season_1 = 1
+                Season_2 = 0
+                Season_3 = 0
+            elif(Season == 2):
+                Season_1 = 0
+                Season_2 = 1
+                Season_3 = 0
+            else:
+                Season_1 = 0
+                Season_2 = 0
+                Season_3 = 1
+
+            final_features = np.array([[Estimated_Insects_Count,Number_Doses_Week, Number_Weeks_Used, Number_Weeks_Quit, Crop_Type_0, Crop_Type_1, Soil_Type_0, Soil_Type_1, Pesticide_Use_Category_1, Pesticide_Use_Category_2, Pesticide_Use_Category_3, Season_1, Season_2, Season_3]])
+            prediction = model1.predict(final_features)
+            output = prediction[0]
+
+            if output== 0:
+                output = "No health Issues"
+            elif output == 1:
+                output = "Damage due to other Cause"
+            else:
+                output = "Damage due to Pesticides"
+            st.write(output)
             st.stop()
