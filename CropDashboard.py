@@ -44,10 +44,10 @@ elif service=='Fertilizer':
         df = pd.read_csv("Data/fertilizer.csv",usecols=["Crop","N","P","K","pH","soil_moisture"])
         # Input crop and soil details in widget
         Crop = st.selectbox(label="Crop",options=df['Crop'])
-        nitrogen = int(st.text_input(label='Nitrogen',key='NitrogenVal',placeholder="0-140"))
-        phosphorus = int(st.text_input(label='Phosphorus',key='Phosphorus',placeholder="5-145"))
-        potassium = int(st.text_input(label='Potassium',key='Potassium',placeholder="5-205"))
-        moisture = int(st.text_input(label='Soil Moisture',key='SoilMoisture',placeholder="Moisture Content Value"))
+        nitrogen = st.text_input(label='Nitrogen',key='NitrogenVal',placeholder="0-140")
+        phosphorus = st.text_input(label='Phosphorus',key='Phosphorus',placeholder="5-145")
+        potassium = st.text_input(label='Potassium',key='Potassium',placeholder="5-205")
+        moisture = st.text_input(label='Soil Moisture',key='SoilMoisture',placeholder="Moisture Content Value")
 
         # submit the details
         submitted = st.form_submit_button("Suggest")
@@ -59,9 +59,9 @@ elif service=='Fertilizer':
             pr = df[df['Crop'] == Crop]['P'].iloc[0]
             kr = df[df['Crop'] == Crop]['K'].iloc[0]
 
-            n = nr - nitrogen
-            p = pr - phosphorus
-            k = kr - potassium
+            n = nr - int(nitrogen)
+            p = pr - int(phosphorus)
+            k = kr - int(potassium)
             temp = {abs(n): "N", abs(p): "P", abs(k): "K"}
             max_value = temp[max(temp.keys())]
             if max_value == "N":
